@@ -21,6 +21,7 @@ class TsvAnnotation:
         last_annotation_entities = ""
         last_tag_id = self.tag_id
         for each_token in self.sentence.tokens:
+            #TODO there are tabs in the original XML files which fuck up the token count
             annotated_token = AnnotatedToken(each_token, self.sentence, self.tags, self.text_string, self.tag_id)
             annotation_info = Annotation(re.split(r"\]|\||\[", annotated_token.annotation[4]))
             if last_entity_1 != "_":
@@ -30,9 +31,11 @@ class TsvAnnotation:
                         annotated_token.annotation[4] = last_annotation_entities
                         last_tag_id = annotated_token.last_tag_id - 2
                     else:
-                        annotated_token.annotation[3] = last_annotation_tag_1 + "|*[" + str(int(annotation_info.level_2_tag) + 1) +  "]"
-                        annotated_token.annotation[4] = last_annotation_entity_1 + "|" + annotation_info.level_2_entity + "[" + str(int(annotation_info.level_2_tag) + 1) + "]"
-                        last_tag_id = int(annotation_info.level_2_tag) + 2
+                        annotated_token.annotation[3] = last_annotation_tag_1 + "|*[" + str(annotated_token.last_tag_id - 2) +  "]"
+                        annotated_token.annotation[4] = last_annotation_entity_1 + "|" + annotation_info.level_2_entity + "[" + str(annotated_token.last_tag_id - 2)  + "]"
+                        last_tag_id = (annotated_token.last_tag_id - 1)
+                else:
+                    last_tag_id = annotated_token.last_tag_id
             else:
                 last_tag_id = annotated_token.last_tag_id
             self.tag_id = last_tag_id
@@ -43,7 +46,6 @@ class TsvAnnotation:
             if last_entity_1 != "_":
                 last_annotation_tag_1,last_annotation_tag_2 = annotated_token.annotation[3].split("|")
                 last_annotation_entity_1, last_annotation_entity_2 = annotated_token.annotation[4].split("|")
-            # TODO compare if the second entity is the same
             annotated_sentence.append(annotated_token.annotation)
         return annotated_sentence, last_tag_id
 

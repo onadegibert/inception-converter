@@ -19,9 +19,12 @@ class AnnotatedFile:
     def clean_text(self):
         text_end = self.content.index("]]></TEXT>\n")
         text = self.content[2:text_end]
-        clean_text = [line.strip().replace("<TEXT><![CDATA[", "") for line in text]
-        text_string = '\n'.join(clean_text)
-        return clean_text, text_string
+        if '﻿' in text[0]:
+            text[0]=re.sub('(  )?<TEXT><!\[CDATA\[﻿', ' ', text[0])
+        else:
+            text[0] = re.sub('(  )?<TEXT><!\[CDATA\[', '', text[0])
+        text_string = ''.join(text)
+        return text, text_string
 
     def clean_tags(self):
         tags_in = self.content.index("  <TAGS>\n")
