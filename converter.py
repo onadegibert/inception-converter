@@ -36,13 +36,12 @@ def main():
     for filename in os.listdir(current_dir+"/"+input_dir):
         file_path = current_dir+"/"+input_dir+"/"+filename
         file = AnnotatedFile(file_path)
-        #print(file.text_string)
         processed_file = WebAnnoObject(file, 1)
         file_out = current_dir+"/"+output_dir+"/"+filename.replace("xml","tsv")
         with open(file_out, 'w') as f:
             for line in processed_file.converted_file:
                 f.write("%s\n" % line)
-        print("File processed:",filename)
+        print "File processed:",filename
     print("Processing time: %.2f seconds.\n" % (time.time() - start_time))
 
 main()
