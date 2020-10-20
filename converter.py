@@ -41,7 +41,7 @@ def main():
         with open(file_out, 'w') as f:
             for line in processed_file.converted_file:
                 f.write("%s\n" % line)
-        print "File processed:",filename
+        print ("File processed:",filename)
     print("Processing time: %.2f seconds.\n" % (time.time() - start_time))
 
 main()
