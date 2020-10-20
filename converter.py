@@ -1,6 +1,5 @@
-from AnnotatedFile import AnnotatedFile
-from WebAnnoObject import WebAnnoObject
-import sys
+from modules.AnnotatedFile import AnnotatedFile
+from modules.WebAnnoObject import WebAnnoObject
 import os
 import time
 import argparse
