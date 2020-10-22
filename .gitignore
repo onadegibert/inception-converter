@@ -2,3 +2,5 @@
 *.tsv
 modules/__pycache__/*
 *.pyc
+input/
+test/run_test.py
