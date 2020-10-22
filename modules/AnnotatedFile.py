@@ -31,10 +31,18 @@ class AnnotatedFile:
         tags_end = self.content.index("  </TAGS>\n")
         tags = self.content[tags_in + 1:tags_end]
         clean_tags = [line.replace("    ", "") for line in tags]
-        parsed_tags = list()
+        last_tag = Tag(clean_tags[0])
+        parsed_tags = [last_tag]
         for each_tag in clean_tags:
             parsed_tag = Tag(each_tag)
+            if parsed_tag.level_1 == "PERSON":
+                if last_tag.level_1 =="PERSON" and last_tag.level_2 == "other:name" and len(parsed_tag.string.split(" ")) > 1:
+                    parsed_tag.level_2 = "family name"
+                    last_tag.level_2 = "given name"
+                    index = parsed_tags.index(last_tag)
+                    parsed_tags[index] = last_tag
             parsed_tags.append(parsed_tag)
+            last_tag = parsed_tag
         return parsed_tags
 
 
