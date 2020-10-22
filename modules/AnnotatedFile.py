@@ -35,16 +35,26 @@ class AnnotatedFile:
         parsed_tags = [last_tag]
         for each_tag in clean_tags:
             parsed_tag = Tag(each_tag)
+            # Process person tag
             if parsed_tag.level_1 == "PERSON":
                 if last_tag.level_1 =="PERSON" and last_tag.level_2 == "other:name" and len(parsed_tag.string.split(" ")) > 1:
                     parsed_tag.level_2 = "family name"
                     last_tag.level_2 = "given name"
                     index = parsed_tags.index(last_tag)
                     parsed_tags[index] = last_tag
+            # Process date tag
+            if parsed_tag.level_1 == "DATE":
+                if re.match("^([0-9]{,2}[\/-]){2}[0-9]{2,4}$",parsed_tag.string):
+                    parsed_tag.level_2 = "standard abbreviation"
+                months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
+                          "octubre", "noviembre", "diciembre"]
+                if parsed_tag.string.lower() in months:
+                    parsed_tag.level_2 = "month"
+                if re.match("^[0-9]{4}$", parsed_tag.string):
+                    parsed_tag.level_2 = "year"
             parsed_tags.append(parsed_tag)
             last_tag = parsed_tag
         return parsed_tags
-
 
 class Tag:
     def __init__(self, tag_info):
