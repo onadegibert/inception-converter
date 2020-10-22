@@ -52,6 +52,12 @@ class AnnotatedFile:
                     parsed_tag.level_2 = "month"
                 if re.match("^[0-9]{4}$", parsed_tag.string):
                     parsed_tag.level_2 = "year"
+            # process territory tag
+            if parsed_tag.level_1 == "ADDRESS" and parsed_tag.level_2 == "territory":
+                if re.match("(?=.*[a-z])(?=.*[A-Z]).*",parsed_tag.string):
+                    parsed_tag.level_2 = "city"
+                if re.match("^[0-9]*$",parsed_tag.string):
+                    parsed_tag.level_2 = "postcode"
             parsed_tags.append(parsed_tag)
             last_tag = parsed_tag
         return parsed_tags
