@@ -14,16 +14,14 @@ class TsvAnnotation:
         last_entity_1 = ""
         last_entity_2 = ""
         last_annotation_tag_1 = ""
-        last_annotation_tag_2 = ""
         last_annotation_entity_1 = ""
-        last_annotation_entity_2 = ""
         last_annotation_tags = ""
         last_annotation_entities = ""
         last_tag_id = self.tag_id
         for each_token in self.sentence.tokens:
-            #TODO there are tabs in the original XML files which fuck up the token count
+            #TODO process when there are three words as given name - family name
             annotated_token = AnnotatedToken(each_token, self.sentence, self.tags, self.text_string, self.tag_id)
-            annotation_info = Annotation(re.split(r"\]|\||\[", annotated_token.annotation[4]))
+            annotation_info = Annotation(re.split(r"]|\||\[", annotated_token.annotation[4]))
             if last_entity_1 != "_":
                 if annotation_info.level_1_entity == last_entity_1:  # if the last entity 1 is the same
                     if annotation_info.level_2_entity == last_entity_2: # if the last entity 2 is the same
@@ -87,7 +85,7 @@ class AnnotatedToken:
         current_tag = "_", "_"
         # TODO use tag.id
         for tag in self.tags:
-            if tag.onset == self.token.onset:  # beggining
+            if tag.onset == self.token.onset:  # beginning
                 current_tag = tag.level_1, tag.level_2
             elif tag.offset == self.token.offset:  # end
                 current_tag = tag.level_1, tag.level_2
