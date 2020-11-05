@@ -54,7 +54,7 @@ class AnnotatedFile:
             # Process date tag
             if parsed_tag.level_1 == "DATE":
                 # Parse standard abbreviation dates
-                if re.match('([0-9]{,2}[\/-]){2}[0-9]{2,4}$', parsed_tag.string):
+                if re.match('([0-9]{,2}[\/\-7 ]+){2}[0-9]{2,4}$', parsed_tag.string):
                     parsed_tag.level_2 = "standard abbreviation"
                 months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
                           "octubre", "noviembre", "diciembre"]
@@ -103,7 +103,8 @@ class AnnotatedFile:
                     if "año" in parsed_tag.string:
                         parsed_tag.string = parsed_tag.string.replace("año ", "")
                         parsed_tag.onset = parsed_tag.onset + len("año") + 1
-
+                if parsed_tag.level_2 == "other:date":
+                    print(parsed_tag.string)
             # process territory tag
             if parsed_tag.level_1 == "ADDRESS" and parsed_tag.level_2 == "territory":
                 if re.match("(?=.*[a-z])(?=.*[A-Z]).*", parsed_tag.string):
