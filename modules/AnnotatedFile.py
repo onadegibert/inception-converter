@@ -1,4 +1,14 @@
 import re
+import os
+
+def read_gazetteers():
+    # Create a dictionary that stores all gazetteers
+    gazetteers = dict()
+    for file in os.listdir("gazetteers"):
+        filename = file.replace('.txt', '')
+        with open('gazetteers/'+file, 'r') as f:
+            gazetteers[filename] = f.read().splitlines()
+    return gazetteers
 
 
 class AnnotatedFile:
@@ -27,6 +37,8 @@ class AnnotatedFile:
         return text, text_string
 
     def clean_tags(self):
+        # Read the stored gazetteers
+        gazetteers = read_gazetteers()
         tags_in = self.content.index("  <TAGS>\n")
         tags_end = self.content.index("  </TAGS>\n")
         tags = self.content[tags_in + 1:tags_end]
@@ -51,7 +63,8 @@ class AnnotatedFile:
             # process territory tag
             if parsed_tag.level_1 == "ADDRESS" and parsed_tag.level_2 == "territory":
                 if re.match("(?=.*[a-z])(?=.*[A-Z]).*", parsed_tag.string):
-                    parsed_tag.level_2 = "city"
+                    if parsed_tag.string in gazetteers['spanish_cities']:
+                        parsed_tag.level_2 = "city"
                 if re.match("^[0-9]*$", parsed_tag.string):
                     parsed_tag.level_2 = "postcode"
             # Process person tag
