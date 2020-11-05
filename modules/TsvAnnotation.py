@@ -83,16 +83,23 @@ class TsvAnnotation:
             # Drop none tags at level_1 and level_2
             if annotation_info.level_1_entity == "none":
                 annotated_token.annotation[3] = "*[" + annotation_info.level_1_tag + "]"
-                annotated_token.annotation[4] = annotation_info.level_2_entity + annotated_token.annotation[3]
+                annotated_token.annotation[4] = annotation_info.level_2_entity + annotated_token.annotation[3].replace("*","")
+                last_tag_id = int(annotation_info.level_2_tag)
+                annotated_token.last_tag_id = last_tag_id
             elif annotation_info.level_2_entity == "none":
                 annotated_token.annotation[3] = "*[" + annotation_info.level_1_tag + "]"
-                annotated_token.annotation[4] = annotation_info.level_1_entity + annotated_token.annotation[3]
-            elif last_entity_1 != "_":
+                annotated_token.annotation[4] = annotation_info.level_1_entity + annotated_token.annotation[3].replace("*","")
+                last_tag_id = int(annotation_info.level_2_tag)
+                annotated_token.last_tag_id = last_tag_id
+            if last_entity_1 != "_":
                 if annotation_info.level_1_entity == last_entity_1:  # if the last entity 1 is the same
                     if annotation_info.level_2_entity == last_entity_2:  # if the last entity 2 is the same
                         annotated_token.annotation[3] = last_annotation_tags
                         annotated_token.annotation[4] = last_annotation_entities
-                        last_tag_id = annotated_token.last_tag_id - 2
+                        if annotation_info.level_2_entity == "none" or annotation_info.level_1_entity == "none":
+                            last_tag_id = annotated_token.last_tag_id - 1
+                        else:
+                            last_tag_id = annotated_token.last_tag_id - 2
                     else:
                         annotated_token.annotation[3] = last_annotation_tag_1 + "|*[" + str(
                             annotated_token.last_tag_id - 2) + "]"
