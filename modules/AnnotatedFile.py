@@ -20,7 +20,7 @@ class AnnotatedFile:
         text_end = self.content.index("]]></TEXT>\n")
         text = self.content[2:text_end]
         if '﻿' in text[0]:
-            text[0]=re.sub('(  )?<TEXT><!\[CDATA\[﻿', ' ', text[0])
+            text[0] = re.sub('(  )?<TEXT><!\[CDATA\[﻿', ' ', text[0])
         else:
             text[0] = re.sub('(  )?<TEXT><!\[CDATA\[', '', text[0])
         text_string = ''.join(text)
@@ -31,20 +31,13 @@ class AnnotatedFile:
         tags_end = self.content.index("  </TAGS>\n")
         tags = self.content[tags_in + 1:tags_end]
         clean_tags = [line.replace("    ", "") for line in tags]
-        last_tag = Tag(clean_tags[0])
+        last_tag = Tag('<none id="" start="0" end="0" text="" TYPE="none" comment=""/>')
         parsed_tags = [last_tag]
         for each_tag in clean_tags:
             parsed_tag = Tag(each_tag)
-            # Process person tag
-            if parsed_tag.level_1 == "PERSON":
-                if last_tag.level_1 =="PERSON" and last_tag.level_2 == "other:name" and len(parsed_tag.string.split(" ")) > 1:
-                    parsed_tag.level_2 = "family name"
-                    last_tag.level_2 = "given name"
-                    index = parsed_tags.index(last_tag)
-                    parsed_tags[index] = last_tag
             # Process date tag
             if parsed_tag.level_1 == "DATE":
-                if re.match("^([0-9]{,2}[\/-]){2}[0-9]{2,4}$",parsed_tag.string):
+                if re.match("^([0-9]{,2}[\/-]){2}[0-9]{2,4}$", parsed_tag.string):
                     parsed_tag.level_2 = "standard abbreviation"
                 months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
                           "octubre", "noviembre", "diciembre"]
@@ -54,13 +47,37 @@ class AnnotatedFile:
                     parsed_tag.level_2 = "year"
             # process territory tag
             if parsed_tag.level_1 == "ADDRESS" and parsed_tag.level_2 == "territory":
-                if re.match("(?=.*[a-z])(?=.*[A-Z]).*",parsed_tag.string):
+                if re.match("(?=.*[a-z])(?=.*[A-Z]).*", parsed_tag.string):
                     parsed_tag.level_2 = "city"
-                if re.match("^[0-9]*$",parsed_tag.string):
+                if re.match("^[0-9]*$", parsed_tag.string):
                     parsed_tag.level_2 = "postcode"
+            # Process person tag
+            if parsed_tag.level_1 == "PERSON":
+                # Parse given name and family name in two separate entities
+                if last_tag.level_1 == "PERSON" and last_tag.level_2 == "other:name" and len(
+                        parsed_tag.string.split(" ")) > 1:
+                    parsed_tag.level_2 = "family name"
+                    last_tag.level_2 = "given name"
+                    index = parsed_tags.index(last_tag)
+                    parsed_tags[index] = last_tag
+                # Split one person entity into given and family name
+                elif parsed_tag.level_2 == "other:name" and len(parsed_tag.string.split()) > 1:
+                    given_name = parsed_tag.string.split()[0]
+                    family_name = ' '.join(parsed_tag.string.split()[1:])
+
+                    # Process given name entity
+                    parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
+                    parsed_tag_given_name = Tag(['',parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name, "given name"])
+                    parsed_tags.append(parsed_tag_given_name)
+
+                    # Process family name entity
+                    parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
+                    parsed_tag_family_name = Tag(['',parsed_tag.level_1, "", parsed_tag_family_name_onset, parsed_tag.offset, family_name, "family name"])
+                    parsed_tag = parsed_tag_family_name
             parsed_tags.append(parsed_tag)
             last_tag = parsed_tag
         return parsed_tags
+
 
 class Tag:
     def __init__(self, tag_info):
@@ -68,8 +85,12 @@ class Tag:
         self.level_1, self.id, self.onset, self.offset, self.string, self.level_2 = self.parse_tag()
 
     def parse_tag(self):
-        keys = [' id="', '" start="', '" end="', '" text="', '" TYPE="', '" comment=','<','>']
-        tag_info_list = re.split("|".join(keys), self.tag_info)
-        parsed_tag = tag_info_list
-        #TODO Ignore none tags
-        return parsed_tag[1], parsed_tag[2].replace('T', ''), int(parsed_tag[3]), int(parsed_tag[4]), parsed_tag[5], parsed_tag[6]
+        keys = [' id="', '" start="', '" end="', '" text="', '" TYPE="', '" comment=', '<', '>']
+        if type(self.tag_info) == str:
+            tag_info_list = re.split("|".join(keys), self.tag_info)
+            parsed_tag = tag_info_list
+        else:
+            parsed_tag = self.tag_info
+        # TODO Ignore none tags
+        return parsed_tag[1], parsed_tag[2].replace('T', ''), int(parsed_tag[3]), int(parsed_tag[4]), parsed_tag[5], \
+               parsed_tag[6]
