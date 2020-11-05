@@ -35,6 +35,8 @@ class AnnotatedFile:
         parsed_tags = [last_tag]
         for each_tag in clean_tags:
             parsed_tag = Tag(each_tag)
+            if parsed_tag.level_1 == "none" and parsed_tag.level_2 == "none":
+                continue
             # Process date tag
             if parsed_tag.level_1 == "DATE":
                 if re.match("^([0-9]{,2}[\/-]){2}[0-9]{2,4}$", parsed_tag.string):
@@ -86,6 +88,7 @@ class Tag:
 
     def parse_tag(self):
         keys = [' id="', '" start="', '" end="', '" text="', '" TYPE="', '" comment=', '<', '>']
+        # Process input (it can be in string format or, already in a list)
         if type(self.tag_info) == str:
             tag_info_list = re.split("|".join(keys), self.tag_info)
             parsed_tag = tag_info_list
