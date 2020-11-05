@@ -35,6 +35,7 @@ class AnnotatedFile:
         parsed_tags = [last_tag]
         for each_tag in clean_tags:
             parsed_tag = Tag(each_tag)
+            # Discard none tags at both levels
             if parsed_tag.level_1 == "none" and parsed_tag.level_2 == "none":
                 continue
             # Process date tag
