@@ -73,9 +73,8 @@ class AnnotatedFile:
                             year = re.findall('[0-9]{2,4}', parsed_tag.string)[1]
                         else:
                             year = re.findall('[0-9]{2,4}', parsed_tag.string)[0]
-                        months = re.findall('|'.join(months), parsed_tag.string)
+                        months = re.findall('|'.join(months), parsed_tag.string, re.IGNORECASE)
                         stopwords = ["y", "de", "del", "-"]
-                        # TODO Working but level_2 none should be dropped
                         for month in months:
                             parsed_tag_month_onset = re.search(month, parsed_tag.string).start() + parsed_tag.onset
                             parsed_tag_month_offset = parsed_tag_month_onset + len(month)
@@ -103,14 +102,12 @@ class AnnotatedFile:
                     if "año" in parsed_tag.string:
                         parsed_tag.string = parsed_tag.string.replace("año ", "")
                         parsed_tag.onset = parsed_tag.onset + len("año") + 1
-                if parsed_tag.level_2 == "other:date":
-                    print(parsed_tag.string)
             # process territory tag
             if parsed_tag.level_1 == "ADDRESS" and parsed_tag.level_2 == "territory":
                 if re.match("(?=.*[a-z])(?=.*[A-Z]).*", parsed_tag.string):
                     if parsed_tag.string in gazetteers['spanish_cities']:
                         parsed_tag.level_2 = "city"
-                        if parsed_tag.string in gazetteers['spanish_territories'] and last_tag.level_2 == "city":
+                        if parsed_tag.string in gazetteers['spanish_territories'] and (last_tag.level_2 == "city" or last_tag.level_2 == "territory"):
                             parsed_tag.level_2 = "territory"
                 if re.match("^[0-9]*$", parsed_tag.string):
                     parsed_tag.level_2 = "postcode"
