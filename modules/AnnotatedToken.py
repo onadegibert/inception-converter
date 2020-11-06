@@ -20,7 +20,7 @@ class AnnotatedToken:
                 level_2 = level_2 + "[" + str(level_2_tag_id) + "]"
                 last_tag_id = self.tag_id + 2
                 return [tag_id, onset_offset, self.token.string,
-                        "|".join(["*[" + str(self.tag_id) + "]", "Ann*[" + str(level_2_tag_id) + "]"]),
+                        "|".join(["*[" + str(self.tag_id) + "]", "*[" + str(level_2_tag_id) + "]"]),
                         "|".join([level_1, level_2])], last_tag_id
             else:
                 return [tag_id, onset_offset, self.token.string, "_", "_"], self.tag_id
