@@ -83,7 +83,13 @@ def process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags):
     if last_tag.level_1 == "PERSON" and last_tag.level_2 == "other:name" and len(
             parsed_tag.string.split(" ")) > 1:
         parsed_tag.level_2 = "family name"
-        last_tag.level_2 = "given name"
+        given_name = last_tag.string
+        if given_name in gazetteers['female_names']:
+            last_tag.level_2 = "given name - female"
+        elif given_name in gazetteers['male_names']:
+            last_tag.level_2 = "given name - male"
+        else:
+            last_tag.level_2 = "given name"
         index = parsed_tags.index(last_tag)
         parsed_tags[index] = last_tag
     # Split one person entity into given and family name
