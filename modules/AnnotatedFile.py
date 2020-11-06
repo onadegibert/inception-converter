@@ -147,7 +147,7 @@ def parsed_date_tag(parsed_tag, parsed_tags):
             else:
                 year = re.findall('[0-9]{2,4}', parsed_tag.string)[0]
             months = re.findall('|'.join(months), parsed_tag.string, re.IGNORECASE)
-            stopwords = ["y", "de", "del", "-"]
+            stopwords = ["y", "del", "de", "-"]
             for month in months:
                 parsed_tag_month_onset = re.search(month, parsed_tag.string).start() + parsed_tag.onset
                 parsed_tag_month_offset = parsed_tag_month_onset + len(month)
