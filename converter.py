@@ -4,6 +4,7 @@ import os
 import time
 import argparse
 
+
 def readable_dir(prospective_dir):
     # Create directory if it doesn't exist
     if not os.path.isdir(prospective_dir):
@@ -12,6 +13,7 @@ def readable_dir(prospective_dir):
         return prospective_dir
     else:
         raise argparse.ArgumentTypeError("readable_dir:{0} is not a readable dir".format(prospective_dir))
+
 
 def parse_arguments():
     # Read command line parameters
@@ -28,20 +30,22 @@ def parse_arguments():
     args = parser.parse_args()
     return args.input_dir, args.output_dir
 
+
 def main():
     print("Converting your corpus...\n")
     start_time = time.time()
     input_dir, output_dir = parse_arguments()
     current_dir = os.getcwd()
-    for filename in os.listdir(current_dir+"/"+input_dir):
-        file_path = current_dir+"/"+input_dir+"/"+filename
+    for filename in os.listdir(current_dir + "/" + input_dir):
+        file_path = current_dir + "/" + input_dir + "/" + filename
         file = AnnotatedFile(file_path)
         processed_file = WebAnnoObject(file, 1)
-        file_out = current_dir+"/"+output_dir+"/"+filename.replace("xml","tsv")
+        file_out = current_dir + "/" + output_dir + "/" + filename.replace("xml", "tsv")
         with open(file_out, 'w') as f:
             for line in processed_file.converted_file:
                 f.write("%s\n" % line)
-        print ("File processed:",filename)
+        print("File processed:", filename)
     print("Processing time: %.2f seconds.\n" % (time.time() - start_time))
+
 
 main()
