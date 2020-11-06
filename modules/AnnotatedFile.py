@@ -50,7 +50,7 @@ class AnnotatedFile:
                 parsed_tag = process_territory_tag(gazetteers, last_tag, parsed_tag)
             # Process person tag
             if parsed_tag.level_1 == "PERSON":
-                parsed_tag = process_person_tag(last_tag, parsed_tag, parsed_tags)
+                parsed_tag = process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags)
             parsed_tags.append(parsed_tag)
             last_tag = parsed_tag
         return parsed_tags
@@ -78,7 +78,7 @@ def process_territory_tag(gazetteers, last_tag, parsed_tag):
     return parsed_tag
 
 
-def process_person_tag(last_tag, parsed_tag, parsed_tags):
+def process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags):
     # Parse given name and family name in two separate entities
     if last_tag.level_1 == "PERSON" and last_tag.level_2 == "other:name" and len(
             parsed_tag.string.split(" ")) > 1:
@@ -97,11 +97,19 @@ def process_person_tag(last_tag, parsed_tag, parsed_tags):
 
         # Process given name entity
         parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-        parsed_tag_given_name = Tag(
-            ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-             "given name"])
+        if given_name in gazetteers['female_names']:
+            parsed_tag_given_name = Tag(
+                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
+                 "given name - female"])
+        elif given_name in gazetteers['male_names']:
+            parsed_tag_given_name = Tag(
+                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
+                 "given name - male"])
+        else:
+            parsed_tag_given_name = Tag(
+                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
+                 "given name"])
         parsed_tags.append(parsed_tag_given_name)
-
         # Process family name entity
         parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
         parsed_tag_family_name = Tag(
