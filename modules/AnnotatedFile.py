@@ -62,19 +62,25 @@ def obtain_gazetteers():
     for file in os.listdir("gazetteers"):
         filename = file.replace('.txt', '')
         with open('gazetteers/' + file, 'r') as f:
-            gazetteers[filename] = f.read().splitlines()
+            gazetteers[filename] = f.read().lower().splitlines()
     return gazetteers
 
 
 def process_territory_tag(gazetteers, last_tag, parsed_tag):
-    if re.match("(?=.*[a-z])(?=.*[A-Z]).*", parsed_tag.string):
-        if parsed_tag.string in gazetteers['spanish_cities']:
+    if re.match("(?=.*[a-zA-Z]).*", parsed_tag.string):
+        if parsed_tag.string.lower() in gazetteers['spanish_cities']:
             parsed_tag.level_2 = "city"
-            if parsed_tag.string in gazetteers['spanish_territories'] and (
+            if parsed_tag.string.lower() in gazetteers['spanish_territories'] and (
                     last_tag.level_2 == "city" or last_tag.level_2 == "territory"):
                 parsed_tag.level_2 = "territory"
-    if re.match("^[0-9]*$", parsed_tag.string):
+        elif parsed_tag.string.lower() in gazetteers["spanish_territories"]:
+            parsed_tag.level_2 = "territory"
+        elif parsed_tag.string.lower() in gazetteers["countries"]:
+            parsed_tag.level_2 = "country"
+    elif re.match("^[0-9]*$", parsed_tag.string):
         parsed_tag.level_2 = "postcode"
+    else:
+        parsed_tag.level_2 = "other:address"
     return parsed_tag
 
 
