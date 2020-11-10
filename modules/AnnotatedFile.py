@@ -1,6 +1,7 @@
 from .Tag import Tag
 import re
 import os
+import unidecode
 
 
 class AnnotatedFile:
@@ -53,17 +54,8 @@ class AnnotatedFile:
                 parsed_tag = process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags)
             parsed_tags.append(parsed_tag)
             last_tag = parsed_tag
+            #print([tag.string for tag in parsed_tags])
         return parsed_tags
-
-
-def obtain_gazetteers():
-    # Create a dictionary that stores all gazetteers
-    gazetteers = dict()
-    for file in os.listdir("gazetteers"):
-        filename = file.replace('.txt', '')
-        with open('gazetteers/' + file, 'r') as f:
-            gazetteers[filename] = f.read().lower().splitlines()
-    return gazetteers
 
 
 def process_territory_tag(gazetteers, last_tag, parsed_tag):
@@ -84,99 +76,63 @@ def process_territory_tag(gazetteers, last_tag, parsed_tag):
     return parsed_tag
 
 
-def process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags):
-    # Parse given name and family name in two separate entities
-    if last_tag.level_1 == "PERSON" and last_tag.level_2 == "other:name" and len(
-            parsed_tag.string.split(" ")) > 1:
-        parsed_tag.level_2 = "family name"
-        given_name = last_tag.string
-        if given_name in gazetteers['female_names']:
-            last_tag.level_2 = "given name - female"
-        elif given_name in gazetteers['male_names']:
-            last_tag.level_2 = "given name - male"
-        else:
-            last_tag.level_2 = "given name"
-        index = parsed_tags.index(last_tag)
-        parsed_tags[index] = last_tag
-    # Split one person entity into given and family name
-    elif parsed_tag.level_2 == "other:name" and len(parsed_tag.string.split()) > 2:
-        stopwords = [" de ", " el ", " la ", " los ", " del "]
-        if len(parsed_tag.string.split()) > 3 and re.search('|'.join(stopwords), parsed_tag.string) is None:
-            given_name = ' '.join(parsed_tag.string.split()[:2])
-            family_name = ' '.join(parsed_tag.string.split()[2:])
-        else:
-            given_name = parsed_tag.string.split()[0]
-            family_name = ' '.join(parsed_tag.string.split()[1:])
+def obtain_gazetteers():
+    # Create a dictionary that stores all gazetteers
+    gazetteers = dict()
+    for file in os.listdir("gazetteers"):
+        filename = file.replace('.txt', '')
+        with open('gazetteers/' + file, 'r') as f:
+            gazetteers[filename] = unidecode.unidecode(f.read()).lower().splitlines()  # remove accents to get more
+            # matches
+    return gazetteers
 
 
-        # Process given name entity
-        parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-        if given_name in gazetteers['female_names']:
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - female"])
-        elif given_name in gazetteers['male_names']:
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - male"])
-        else:
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name"])
-        parsed_tags.append(parsed_tag_given_name)
-        # Process family name entity
-        parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
-        parsed_tag_family_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag_family_name_onset, parsed_tag.offset, family_name,
-                 "family name"])
-        parsed_tag = parsed_tag_family_name
-    # When there's only two words
+def find_in_gazetteers_return_tag(tag_string, gazetteers):
+    tag_string = unidecode.unidecode(tag_string)  # remove accents to get more matches
+    if tag_string in gazetteers['male_names']:
+        tag_level_2 = "given name - male"
+    elif tag_string in gazetteers['female_names']:
+        tag_level_2 = "given name - female"
+    elif tag_string in gazetteers['surnames']:
+        tag_level_2 = "family name"
     else:
-        if parsed_tag.string in gazetteers['male_names']:
-            given_name = parsed_tag.string
-            parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - male"])
-            parsed_tag = parsed_tag_given_name
-        elif parsed_tag.string in gazetteers['female_names']:
-            given_name = parsed_tag.string
-            parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - female"])
-            parsed_tag = parsed_tag_given_name
-        elif parsed_tag.string[0] in gazetteers['male_names']:
-            given_name = parsed_tag.string[0]
-            parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - male"])
-            parsed_tags.append(parsed_tag_given_name)
-            # Process family name entity
-            family_name = parsed_tag.string[1]
-            parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
-            parsed_tag_family_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag_family_name_onset, parsed_tag.offset, family_name,
-                 "family name"])
-            parsed_tag = parsed_tag_family_name
-        elif parsed_tag.string[0] in gazetteers['female_names']:
-            given_name = parsed_tag.string[0]
-            parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - female"])
-            parsed_tag_given_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name,
-                 "given name - male"])
-            parsed_tags.append(parsed_tag_given_name)
-            # Process family name entity
-            family_name = parsed_tag.string[1]
-            parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
-            parsed_tag_family_name = Tag(
-                ['', parsed_tag.level_1, "", parsed_tag_family_name_onset, parsed_tag.offset, family_name,
-                 "family name"])
-            parsed_tag = parsed_tag_family_name
+        tag_level_2 = "other:name"
+    return tag_level_2
+
+
+def process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags):
+    # Parse one name
+    tag_level_2 = find_in_gazetteers_return_tag(parsed_tag.string.lower(), gazetteers)
+    if tag_level_2 != "other:name":
+        parsed_tag.level_2 = tag_level_2
+    else:
+        last_tag_level_2 = tag_level_2
+        name_words = parsed_tag.string.split(" ")
+        # Parse words when they not appear in the list
+        count = 0
+        for word in name_words:
+            tag_level_2 = find_in_gazetteers_return_tag(word.lower(), gazetteers)
+            # If they are both of the same kind (two male names, two female names or two surnames)
+            if tag_level_2 == last_tag_level_2:
+                parsed_tag.level_2 = tag_level_2
+            elif last_tag_level_2 != 'other:name' or (last_tag_level_2 == "other:name" and tag_level_2 == "family name"):
+                # Create new tag from words onwards to count as given name, else family name
+                given_name = ' '.join(name_words[:count])
+                parsed_tag_given_name_offset = parsed_tag.onset + len(given_name)
+                parsed_tag_given_name = Tag(
+                    ['', parsed_tag.level_1, "", parsed_tag.onset, parsed_tag_given_name_offset, given_name, \
+                     last_tag_level_2])
+                parsed_tags.append(parsed_tag_given_name)
+                # Process family name entity
+                family_name = ' '.join(name_words[count:])
+                parsed_tag_family_name_onset = parsed_tag_given_name.offset + 1
+                parsed_tag_family_name = Tag(
+                    ['', parsed_tag.level_1, "", parsed_tag_family_name_onset, parsed_tag.offset, family_name,
+                     "family name"])
+                parsed_tag = parsed_tag_family_name
+                break
+            last_tag_level_2 = tag_level_2
+            count += 1
     return parsed_tag
 
 
