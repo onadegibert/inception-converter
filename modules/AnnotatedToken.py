@@ -1,3 +1,6 @@
+import re
+
+
 class AnnotatedToken:
 
     def __init__(self, token, sentence, tags, text_string, tag_id):
@@ -41,8 +44,8 @@ class AnnotatedToken:
             elif self.token.onset > tag.onset and self.token.offset < tag.offset:  # in the middle
                 current_tag = tag.level_1, tag.level_2
         # Process Nombre y Apellidos for other:name tags
-        if "Nombre" in self.sentence.string and current_tag[1] == "other:name":
+        if re.search("Nombre", self.sentence.string):
             current_tag = current_tag[0],"given name"
-        elif "Apellidos" in self.sentence.text_string and current_tag[1] == "other:name":
+        elif re.search("Apellidos", self.sentence.string):
             current_tag = current_tag[0],"family name"
         return current_tag
