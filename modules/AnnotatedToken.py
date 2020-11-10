@@ -40,4 +40,9 @@ class AnnotatedToken:
                 current_tag = tag.level_1, tag.level_2
             elif self.token.onset > tag.onset and self.token.offset < tag.offset:  # in the middle
                 current_tag = tag.level_1, tag.level_2
+        # Process Nombre y Apellidos for other:name tags
+        if "Nombre" in self.sentence.string and current_tag[1] == "other:name":
+            current_tag = current_tag[0],"given name"
+        elif "Apellidos" in self.sentence.text_string and current_tag[1] == "other:name":
+            current_tag = current_tag[0],"family name"
         return current_tag
