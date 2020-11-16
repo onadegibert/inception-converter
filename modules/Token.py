@@ -7,5 +7,8 @@ class Token:
 
     def onset_offset(self):
         onset = self.text_string.find(self.string, self.onset_start)
-        offset = onset + len(self.string)
+        if len(self.string) == 1 and self.string != '.':
+            offset = onset
+        else:
+            offset = onset + len(self.string)
         return onset, offset
