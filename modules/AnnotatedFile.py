@@ -169,7 +169,7 @@ def parsed_date_tag(parsed_tag, parsed_tags):
             if re.search('|'.join(stopwords), parsed_tag.string):
                 for word in re.findall('|'.join(stopwords), parsed_tag.string):
                     parsed_tag_word_onset = re.search(word, parsed_tag.string).start() + parsed_tag.onset
-                    parsed_tag.string = parsed_tag.string.replace(word, 'xx',
+                    parsed_tag.string = parsed_tag.string.replace(word, 'x',
                                                                   1)  # replace word to get next occurrence
                     parsed_tag_word_offset = parsed_tag_word_onset + len(word)
                     parsed_tag_stopword = Tag(
