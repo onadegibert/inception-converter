@@ -114,7 +114,7 @@ def process_person_tag(gazetteers, last_tag, parsed_tag, parsed_tags):
             tag_level_2 = find_in_gazetteers_return_tag(word.lower(), gazetteers)
             # If they are both of the same kind (two male names, two female names or two surnames)
             if tag_level_2 == last_tag_level_2 or tag_level_2[:10] == last_tag_level_2[:10]: # Composed nouns that have male names (Rosa Maria)
-                parsed_tag.level_2 = last_tag_level_2
+                tag_level_2 = last_tag_level_2
             elif last_tag_level_2 != 'other:name' or (last_tag_level_2 == "other:name" and tag_level_2 == "family name"):
                 # Create new tag from words onwards to count as given name, else family name
                 given_name = ' '.join(name_words[:count])
